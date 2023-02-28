@@ -1,9 +1,10 @@
 class PostsController < ApplicationController
+  before_action :get_author
   before_action :set_post, only: %i[ show edit update destroy ]
 
   # GET /posts or /posts.json
   def index
-    @posts = Post.all
+    @posts = @author.posts
   end
 
   # GET /posts/1 or /posts/1.json
@@ -12,7 +13,7 @@ class PostsController < ApplicationController
 
   # GET /posts/new
   def new
-    @post = Post.new
+    @post = @author.posts.build
   end
 
   # GET /posts/1/edit
@@ -21,16 +22,26 @@ class PostsController < ApplicationController
 
   # POST /posts or /posts.json
   def create
-    @author = Author.find(params[:author_id])
-    @posts = @author.posts.create(post_params)
-    redirect_to author_path(@author)
+    @post = @author.posts.build(post_params)
+
+    respond_to do |format|
+      if @post.save
+        format.html { redirect_to author_url(@author), notice: "Post was successfully created." }
+        format.json { render :show, status: :created, location: @author }
+      else
+        format.html { render :new, status: :unprocessable_entity }
+        format.json { render json: @post.errors, status: :unprocessable_entity }
+      end
+    end
+
+    #redirect_to author_path(@author)
   end
 
   # PATCH/PUT /posts/1 or /posts/1.json
   def update
     respond_to do |format|
       if @post.update(post_params)
-        format.html { redirect_to post_url(@post), notice: "Post was successfully updated." }
+        format.html { redirect_to author_post_path(@author), notice: "Post was successfully updated." }
         format.json { render :show, status: :ok, location: @post }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -52,11 +63,15 @@ class PostsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_post
-      @post = Post.find(params[:id])
+      @post = @author.posts.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def post_params
       params.require(:post).permit(:title, :body, :author_id)
+    end
+
+    def get_author
+      @author = Author.find(params[:author_id])
     end
 end

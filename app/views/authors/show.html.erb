@@ -5,7 +5,9 @@
 <h1>Posts</h1>
 <%= render @author.posts%>
 
-<%= render  'posts/form' %>
+<%= link_to "New Post", new_author_post_path(@author)%>
+
+<%#<%= render  'posts/form' %>  
 
 <div>
   <%= link_to "Edit this author", edit_author_path(@author) %> |
